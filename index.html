@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <main class="app-shell">
+    <main class="app-shell" data-view="home">
       <aside class="sidebar" aria-label="计划设置">
         <div class="brand-block">
           <div class="brand-mark" aria-hidden="true">
@@ -36,31 +36,26 @@
             </label>
           </div>
 
-          <div class="servings-control" aria-label="做几人份">
-            <span>
-              <span class="field-label">做几人份</span>
-              <strong id="servingValue">2 人</strong>
-            </span>
-            <div class="stepper">
-              <button id="servingMinus" type="button" aria-label="减少人数">-</button>
-              <button id="servingPlus" type="button" aria-label="增加人数">+</button>
-            </div>
-          </div>
+          <p class="micro-note">固定两个人使用；购物清单和带饭都按两个人计算。</p>
         </section>
 
         <section class="panel">
           <p class="panel-kicker">小米称热量目标</p>
           <div class="field-grid">
             <label>
-              <span class="field-label">我的目标 kcal/天</span>
-              <input id="targetMe" type="number" min="1000" max="4000" step="50" />
+              <span class="field-label">我的目标 kJ/天</span>
+              <input id="targetMe" type="number" min="4200" max="16700" step="100" />
             </label>
             <label>
-              <span class="field-label">老婆目标 kcal/天</span>
-              <input id="targetPartner" type="number" min="1000" max="4000" step="50" />
+              <span class="field-label">老婆目标 kJ/天</span>
+              <input id="targetPartner" type="number" min="4200" max="16700" step="100" />
             </label>
           </div>
-          <p class="micro-note">每道菜热量按每人每份粗估；中/晚餐默认使用同一类菜谱和同样份量。</p>
+          <label>
+            <span class="field-label">午/晚餐米饭 kJ/人/顿</span>
+            <input id="riceEnergy" type="number" min="0" max="1800" step="50" />
+          </label>
+          <p class="micro-note">默认少吃点米饭：约 650 kJ/人/顿。晚饭按 4 份做，2 份晚餐 + 2 份第二天午餐。</p>
         </section>
 
         <section class="panel pantry-panel">
@@ -68,53 +63,60 @@
           <ul>
             <li>大米</li>
             <li>酱油、醋、盐、胡椒</li>
-            <li>蒜、姜、葱、辣椒面、花椒</li>
+            <li>蒜、姜、葱、辣椒面、花椒、豆瓣酱</li>
             <li>少量芝麻油、橄榄油</li>
           </ul>
         </section>
 
-        <section class="panel">
-          <label class="field-label" for="weeklyNote">本周备注</label>
-          <textarea id="weeklyNote" rows="5" placeholder="例如：小米称建议我 1850 kcal；老婆 1500 kcal；周三鱼类买特价。"></textarea>
-        </section>
-
         <section class="panel sync-panel">
-          <p class="panel-kicker">云同步</p>
+          <p class="panel-kicker">家庭云端</p>
           <p id="syncStatus" class="sync-status">未连接</p>
           <label>
             <span class="field-label">同步码</span>
-            <input id="syncCode" placeholder="创建后发给老婆，她粘贴一次即可" />
+            <input id="syncCode" placeholder="创建家庭云端链接后，这里会自动填好" />
           </label>
           <div class="sync-actions">
-            <button id="createSyncCode" type="button">创建同步码</button>
-            <button id="connectSyncCode" type="button">连接</button>
+            <button id="createSyncCode" class="primary-action" type="button">创建家庭云端链接</button>
+            <button id="connectSyncCode" type="button">连接同步码</button>
           </div>
           <div class="sync-actions">
-            <button id="saveCloud" class="primary-action" type="button">保存到云端</button>
-            <button id="loadCloud" type="button">从云端加载</button>
+            <button id="saveCloud" type="button">立即保存</button>
+            <button id="loadCloud" type="button">立即刷新</button>
           </div>
-          <label class="sync-toggle">
-            <input id="autoSync" type="checkbox" />
-            <span>自动同步</span>
-          </label>
-          <p class="micro-note">需要先按 SUPABASE_SETUP.md 配好数据库；同步码不要公开发。</p>
+          <p class="micro-note">云端模式会自动保存和刷新；家庭链接只发给你们两个人，不要公开发。</p>
         </section>
       </aside>
 
       <section class="workspace">
         <header class="topbar">
           <div>
-            <p class="eyebrow">Recipes + shopping + calories</p>
-            <h2>先有菜谱库，再排下周吃什么</h2>
+            <p class="eyebrow">Bunbury meal decision app</p>
+            <h2>今天吃什么，直接照做</h2>
           </div>
           <div class="actions">
-            <button id="generatePlan" class="primary-action" type="button">重新生成下周计划</button>
-            <button id="copyPlan" type="button">复制计划</button>
-            <button id="printPlan" type="button">打印</button>
+            <button id="generatePlan" class="primary-action" type="button">一键换一周</button>
           </div>
         </header>
 
-        <section class="status-grid" aria-label="本周概览">
+        <nav class="app-nav" aria-label="主要功能">
+          <button class="app-nav-btn is-active" type="button" data-view="home">今日</button>
+          <button class="app-nav-btn" type="button" data-view="shopping">购物清单</button>
+          <button class="app-nav-btn" type="button" data-view="recipes">菜谱库</button>
+          <button class="app-nav-btn" type="button" data-view="settings">设置/同步</button>
+        </nav>
+
+        <section class="today-section view-section view-home" aria-label="今日食谱">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Today</p>
+              <h3>今日食谱</h3>
+            </div>
+            <p id="todaySummary" class="section-note">今天照着做就行。</p>
+          </div>
+          <div id="todayPanel" class="today-panel"></div>
+        </section>
+
+        <section class="status-grid view-section view-home" aria-label="本周概览">
           <article>
             <span class="metric-label">菜谱库</span>
             <strong id="recipeMetric">30 道</strong>
@@ -122,7 +124,7 @@
           </article>
           <article>
             <span class="metric-label">三餐均值</span>
-            <strong id="calorieMetric">0 kcal</strong>
+            <strong id="calorieMetric">0 kJ</strong>
             <p id="calorieSummary">每人每天估算</p>
           </article>
           <article>
@@ -137,18 +139,18 @@
           </article>
         </section>
 
-        <section class="plan-section">
+        <section class="plan-section view-section view-home">
           <div class="section-heading">
             <div>
               <p class="eyebrow">Weekly plan</p>
               <h3>下周计划</h3>
             </div>
-            <p class="section-note">早餐从早餐库选；午餐和晚餐共用中/晚餐菜谱库。</p>
+            <p class="section-note">午餐默认是前一晚带饭；周一午餐按周日备餐处理。</p>
           </div>
           <div id="planGrid" class="plan-grid"></div>
         </section>
 
-        <section class="shopping-section">
+        <section class="shopping-section view-section view-shopping">
           <div class="section-heading">
             <div>
               <p class="eyebrow">Shopping split</p>
@@ -159,7 +161,7 @@
           <div id="shoppingLists" class="store-grid"></div>
         </section>
 
-        <section class="library-section">
+        <section class="library-section view-section view-recipes">
           <div class="section-heading">
             <div>
               <p class="eyebrow">Recipe database</p>
@@ -168,12 +170,12 @@
             <div class="filter-tabs" id="recipeFilters" aria-label="菜谱筛选"></div>
           </div>
           <div class="search-row">
-            <input id="recipeSearch" type="search" placeholder="搜索菜名、标签、食材，例如：鱼、泡椒、鸡胸" />
+            <input id="recipeSearch" type="search" placeholder="搜索菜名、标签、食材，例如：鱼、酸辣、鸡胸" />
           </div>
           <div id="recipeGrid" class="recipe-grid"></div>
         </section>
 
-        <section class="add-section">
+        <section class="add-section view-section view-recipes">
           <div class="section-heading">
             <div>
               <p class="eyebrow">Add your own</p>
@@ -187,7 +189,7 @@
               <h4>手动加一道菜</h4>
               <label>
                 <span class="field-label">菜名</span>
-                <input id="recipeName" required placeholder="例如：泡椒魔芋蒸鱼片" />
+                <input id="recipeName" required placeholder="例如：酸辣豆腐蒸鱼片" />
               </label>
               <div class="checkbox-row">
                 <label><input id="typeBreakfast" type="checkbox" /> 早餐</label>
@@ -195,8 +197,8 @@
               </div>
               <div class="field-grid">
                 <label>
-                  <span class="field-label">每人热量 kcal</span>
-                  <input id="recipeCalories" type="number" min="100" max="1200" step="5" required />
+                  <span class="field-label">每人热量 kJ</span>
+                  <input id="recipeCalories" type="number" min="400" max="5000" step="20" required />
                 </label>
                 <label>
                   <span class="field-label">蛋白质 g</span>
@@ -222,7 +224,7 @@
               <h4>AI 问答导入</h4>
               <p class="micro-note">复制提示词到 ChatGPT，让它按格式生成 JSON；再粘贴到下面导入。</p>
               <button id="copyAiPrompt" type="button">复制 AI 提示词</button>
-              <textarea id="aiImport" rows="10" placeholder='粘贴 JSON，例如：[{"name":"椒麻鸡胸蒸茄子","types":["main"],"calories":460,"protein":42,"tags":["椒麻","蒸菜"],"ingredients":[{"name":"鸡胸肉","amount":160,"unit":"g","store":"Woolworths"}],"steps":["鸡胸切片腌10分钟","茄子垫底蒸熟"]}]'></textarea>
+              <textarea id="aiImport" rows="10" placeholder='粘贴 JSON，例如：[{"name":"椒麻鸡胸蒸茄子","types":["main"],"energyKj":1925,"protein":42,"tags":["椒麻","蒸菜"],"ingredients":[{"name":"鸡胸肉","amount":160,"unit":"g","store":"Woolworths"}],"steps":["鸡胸切片腌10分钟","茄子垫底蒸熟"]}]'></textarea>
               <div class="inline-actions">
                 <button id="importRecipes" class="primary-action" type="button">导入 JSON</button>
                 <button id="exportRecipes" type="button">导出我的菜</button>
@@ -232,7 +234,7 @@
         </section>
 
         <footer class="app-footer">
-          <span>热量为粗估，不替代医生或营养师建议。</span>
+          <span>热量 kJ/kcal 为粗估，不替代医生或营养师建议。</span>
           <a href="https://www.eatforhealth.gov.au/food-essentials/frequently-asked-questions" target="_blank" rel="noreferrer">Eat for Health energy balance</a>
           <a href="https://www.niddk.nih.gov/bwp" target="_blank" rel="noreferrer">NIDDK Body Weight Planner</a>
           <a href="https://www.spudshed.com.au/find-your-store/" target="_blank" rel="noreferrer">Spudshed stores</a>

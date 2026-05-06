@@ -1,9 +1,10 @@
 const STORAGE_KEY = "bunbury-sichuan-recipe-db-v3";
+const KJ_PER_KCAL = 4.184;
 
 const weekdays = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"];
 const tripMeta = [
-  { id: "main", label: "大采购", dayKey: "mainDay", days: [0, 1, 2] },
-  { id: "topup", label: "补货", dayKey: "topUpDay", days: [3, 4, 5, 6] },
+  { id: "main", label: "Spudshed 大采购", store: "Spudshed", dayKey: "mainDay", days: [0, 1, 2, 3, 4, 5, 6] },
+  { id: "topup", label: "Woolworths 补货", store: "Woolworths", dayKey: "topUpDay", days: [0, 1, 2, 3, 4, 5, 6] },
 ];
 
 const baseRecipes = [
@@ -32,11 +33,11 @@ const baseRecipes = [
     ing("黄瓜", 1, "根", "Spudshed"),
     ing("苹果或梨", 1, "个", "Spudshed"),
   ], ["鸡胸提前蒸熟撕丝。", "黄瓜拍碎，加醋、蒜和辣椒面。", "鸡丝拌进去，水果留作加餐。"]),
-  recipe("b006", "毛豆豆腐早餐碗", ["breakfast"], 390, 30, ["早餐", "豆腐", "毛豆"], [
-    ing("冷冻毛豆", 100, "g", "Woolworths"),
+  recipe("b006", "青豆豆腐早餐碗", ["breakfast"], 350, 24, ["早餐", "豆腐", "快手"], [
+    ing("冷冻豌豆", 100, "g", "Woolworths"),
     ing("嫩豆腐", 150, "g", "Woolworths"),
     ing("番茄", 1, "个", "Spudshed"),
-  ], ["毛豆蒸 5 分钟。", "豆腐和番茄一起蒸热。", "加醋、酱油、花椒粉和葱花。"]),
+  ], ["冷冻豌豆蒸 5 分钟。", "豆腐和番茄一起蒸热。", "加醋、酱油、花椒粉和葱花。"]),
   recipe("b007", "番茄牛肉蒸蛋", ["breakfast"], 420, 35, ["早餐", "牛肉", "蒸蛋"], [
     ing("瘦牛肉片", 100, "g", "Woolworths"),
     ing("鸡蛋", 2, "枚", "Woolworths"),
@@ -52,11 +53,11 @@ const baseRecipes = [
     ing("鸡胸肉", 170, "g", "Woolworths"),
     ing("西兰花", 1, "颗", "Spudshed"),
   ], ["鸡胸切片，用姜蒜、胡椒、少量酱油腌 10 分钟。", "西兰花垫底，鸡胸铺上蒸 8-10 分钟。", "辣椒面、花椒粉、醋、酱油和热水调蘸水。"]),
-  recipe("m002", "泡椒番茄蒸鱼", ["main"], 450, 42, ["泡椒", "鱼", "酸辣"], [
+  recipe("m002", "酸辣番茄蒸鱼", ["main"], 450, 42, ["酸辣", "鱼", "蒸菜"], [
     ing("白鱼柳", 180, "g", "Woolworths"),
     ing("番茄", 1, "个", "Spudshed"),
     ing("亚洲青菜", 0.5, "把", "Spudshed"),
-  ], ["鱼柳铺姜丝，番茄切丁铺旁边。", "水开蒸 6-8 分钟。", "泡椒切碎，加醋和蒸鱼汤调酸辣汁。"]),
+  ], ["鱼柳铺姜丝，番茄切丁铺旁边。", "水开蒸 6-8 分钟。", "用醋、辣椒面、花椒粉和蒸鱼汤调酸辣汁。"]),
   recipe("m003", "椒麻虾仁西葫芦", ["main"], 430, 38, ["椒麻", "虾仁", "快手"], [
     ing("虾仁", 160, "g", "Woolworths"),
     ing("西葫芦", 1, "根", "Spudshed"),
@@ -66,37 +67,37 @@ const baseRecipes = [
     ing("硬豆腐", 220, "g", "Woolworths"),
     ing("蘑菇", 150, "g", "Spudshed"),
     ing("小白菜", 0.5, "把", "Spudshed"),
-  ], ["豆腐切块，蘑菇和青菜垫底。", "水开蒸 8 分钟。", "半茶匙豆瓣加蒜、醋和蒸菜汤调开。"]),
+  ], ["豆腐切块，蘑菇和青菜垫底。", "水开蒸 8 分钟。", "半茶匙豆瓣酱加蒜、醋和蒸菜汤调开。"]),
   recipe("m005", "水煮风味瘦牛花菜", ["main"], 540, 45, ["牛肉", "水煮风味"], [
     ing("瘦牛肉片", 160, "g", "Woolworths"),
     ing("花菜", 0.5, "颗", "Spudshed"),
     ing("白菜", 0.5, "颗", "Spudshed"),
   ], ["花菜和白菜蒸熟垫底。", "牛肉片蒸到刚熟。", "用花椒、辣椒面、醋、酱油和热水做少油水煮汁。"]),
-  recipe("m006", "酸辣魔芋鸡丝", ["main"], 430, 40, ["酸辣", "鸡胸", "低卡"], [
+  recipe("m006", "酸辣白菜鸡丝", ["main"], 400, 40, ["酸辣", "鸡胸", "低卡"], [
     ing("鸡胸肉", 150, "g", "Woolworths"),
-    ing("魔芋丝", 200, "g", "Woolworths"),
+    ing("白菜", 0.25, "颗", "Spudshed"),
     ing("黄瓜", 1, "根", "Spudshed"),
-  ], ["鸡胸蒸熟撕丝。", "魔芋丝焯水去味。", "黄瓜、鸡丝和魔芋用醋、蒜、辣椒面拌匀。"]),
-  recipe("m007", "剁椒蒸白鱼小白菜", ["main"], 460, 42, ["剁椒", "鱼", "蒸菜"], [
+  ], ["鸡胸蒸熟撕丝。", "白菜切细丝后蒸 3 分钟或直接用生菜心。", "黄瓜、鸡丝和白菜用醋、蒜、辣椒面拌匀。"]),
+  recipe("m007", "酸辣白鱼小白菜", ["main"], 460, 42, ["酸辣", "鱼", "蒸菜"], [
     ing("白鱼柳", 180, "g", "Woolworths"),
     ing("小白菜", 1, "把", "Spudshed"),
     ing("番茄", 1, "个", "Spudshed"),
-  ], ["小白菜垫底，鱼柳铺姜丝。", "少量剁椒铺表面，水开蒸 6-8 分钟。", "如果剁椒很咸，不再额外加盐。"]),
-  recipe("m008", "泡椒鸡肉蒸肉饼白菜", ["main"], 500, 44, ["泡椒", "肉饼", "备餐"], [
-    ing("鸡肉或火鸡瘦肉末", 170, "g", "Woolworths"),
+  ], ["小白菜垫底，鱼柳铺姜丝。", "水开蒸 6-8 分钟。", "出锅用醋、辣椒面和少量酱油调味；有现成辣椒酱再少量加。"]),
+  recipe("m008", "酸辣鸡肉蒸肉饼白菜", ["main"], 500, 44, ["酸辣", "肉饼", "备餐"], [
+    ing("鸡肉瘦肉末", 170, "g", "Woolworths"),
     ing("白菜", 0.5, "颗", "Spudshed"),
     ing("胡萝卜", 1, "根", "Spudshed"),
-  ], ["肉末加姜蒜、胡椒和少量酱油搅上劲。", "白菜垫底，肉末压薄，蒸 10-12 分钟。", "泡椒碎和醋出锅后再加。"]),
-  recipe("m009", "藤椒三文鱼南瓜", ["main"], 560, 38, ["三文鱼", "藤椒", "周末"], [
+  ], ["肉末加姜蒜、胡椒和少量酱油搅上劲。", "白菜垫底，肉末压薄，蒸 10-12 分钟。", "醋、辣椒面和葱花出锅后再加。"]),
+  recipe("m009", "椒麻三文鱼南瓜", ["main"], 560, 38, ["三文鱼", "椒麻", "周末"], [
     ing("三文鱼小份", 160, "g", "Woolworths"),
     ing("南瓜", 220, "g", "Spudshed"),
     ing("亚洲青菜", 0.5, "把", "Spudshed"),
-  ], ["南瓜切块先蒸 8 分钟。", "加入三文鱼和青菜再蒸 6 分钟。", "藤椒粉、青柠汁和葱花调味。"]),
-  recipe("m010", "麻辣豆腐毛豆青菜", ["main"], 480, 34, ["豆腐", "毛豆", "麻辣"], [
+  ], ["南瓜切块先蒸 8 分钟。", "加入三文鱼和青菜再蒸 6 分钟。", "花椒粉、青柠汁和葱花调味。"]),
+  recipe("m010", "豆瓣豆腐青豆亚洲青菜", ["main"], 430, 30, ["豆腐", "青豆", "豆瓣"], [
     ing("硬豆腐", 200, "g", "Woolworths"),
-    ing("冷冻毛豆", 120, "g", "Woolworths"),
+    ing("冷冻豌豆", 120, "g", "Woolworths"),
     ing("亚洲青菜", 1, "把", "Spudshed"),
-  ], ["毛豆先蒸 5 分钟。", "豆腐和青菜一起蒸热。", "用麻辣蘸水拌匀，油控制在一茶匙内。"]),
+  ], ["冷冻豌豆先蒸 5 分钟。", "豆腐和青菜一起蒸热。", "半茶匙豆瓣酱加醋和蒸菜汤拌匀，油控制在一茶匙内。"]),
   recipe("m011", "番茄酸汤虾仁豆腐", ["main"], 450, 36, ["酸汤", "虾仁", "豆腐"], [
     ing("虾仁", 130, "g", "Woolworths"),
     ing("嫩豆腐", 180, "g", "Woolworths"),
@@ -107,21 +108,21 @@ const baseRecipes = [
     ing("茄子", 1, "根", "Spudshed"),
     ing("香菜", 0.25, "把", "Spudshed"),
   ], ["茄子切条垫底，鸡胸切片铺上。", "蒸 10 分钟。", "蒜末、辣椒面、醋和酱油出锅后淋。"]),
-  recipe("m013", "椒麻火鸡肉丸青菜", ["main"], 510, 45, ["火鸡", "椒麻", "肉丸"], [
-    ing("火鸡瘦肉末", 170, "g", "Woolworths"),
+  recipe("m013", "椒麻鸡肉丸青菜", ["main"], 510, 45, ["鸡肉", "椒麻", "肉丸"], [
+    ing("鸡肉瘦肉末", 170, "g", "Woolworths"),
     ing("亚洲青菜", 1, "把", "Spudshed"),
     ing("蘑菇", 100, "g", "Spudshed"),
   ], ["肉末加姜蒜和胡椒做成小丸子。", "青菜蘑菇垫底，蒸 10 分钟。", "椒麻汁最后淋，少盐。"]),
-  recipe("m014", "泡椒魔芋蒸鱼片", ["main"], 440, 42, ["泡椒", "魔芋", "鱼"], [
+  recipe("m014", "酸辣豆腐蒸鱼片", ["main"], 470, 44, ["酸辣", "豆腐", "鱼"], [
     ing("白鱼柳", 170, "g", "Woolworths"),
-    ing("魔芋丝", 180, "g", "Woolworths"),
+    ing("嫩豆腐", 150, "g", "Woolworths"),
     ing("小白菜", 0.5, "把", "Spudshed"),
-  ], ["魔芋丝焯水后垫底。", "鱼片铺上，水开蒸 6 分钟。", "泡椒和醋调汁，吃前淋。"]),
+  ], ["嫩豆腐和小白菜垫底。", "鱼片铺上，水开蒸 6 分钟。", "醋、辣椒面、花椒粉和蒸鱼汤调汁，吃前淋。"]),
   recipe("m015", "豆瓣鸡胸花菜", ["main"], 530, 48, ["豆瓣", "鸡胸", "花菜"], [
     ing("鸡胸肉", 170, "g", "Woolworths"),
     ing("花菜", 0.5, "颗", "Spudshed"),
     ing("黄瓜", 1, "根", "Spudshed"),
-  ], ["花菜蒸熟，鸡胸片蒸 8-10 分钟。", "半茶匙豆瓣用蒸菜汤调开。", "黄瓜做酸辣冷拌解腻。"]),
+  ], ["花菜蒸熟，鸡胸片蒸 8-10 分钟。", "半茶匙豆瓣酱用蒸菜汤调开。", "黄瓜做酸辣冷拌解腻。"]),
   recipe("m016", "酸辣黄瓜虾仁碗", ["main"], 480, 38, ["虾仁", "酸辣", "冷拌"], [
     ing("虾仁", 160, "g", "Woolworths"),
     ing("黄瓜", 1, "根", "Spudshed"),
@@ -137,40 +138,41 @@ const baseRecipes = [
     ing("蘑菇", 150, "g", "Spudshed"),
     ing("青椒或彩椒", 1, "个", "Spudshed"),
   ], ["鸡胸切片腌 10 分钟。", "蘑菇和青椒垫底，蒸 8-10 分钟。", "蒜末、醋和辣椒面收味。"]),
-  recipe("m019", "泡椒牛肉白菜", ["main"], 540, 45, ["牛肉", "泡椒", "白菜"], [
+  recipe("m019", "酸辣牛肉白菜", ["main"], 540, 45, ["牛肉", "酸辣", "白菜"], [
     ing("瘦牛肉片", 160, "g", "Woolworths"),
     ing("白菜", 0.5, "颗", "Spudshed"),
     ing("番茄", 1, "个", "Spudshed"),
-  ], ["白菜番茄垫底。", "牛肉片铺上蒸到刚熟。", "泡椒碎、醋和葱花出锅后拌。"]),
-  recipe("m020", "藤椒白鱼芦笋", ["main"], 470, 42, ["藤椒", "鱼", "芦笋"], [
+  ], ["白菜番茄垫底。", "牛肉片铺上蒸到刚熟。", "醋、辣椒面、花椒粉和葱花出锅后拌。"]),
+  recipe("m020", "椒麻白鱼四季豆", ["main"], 470, 42, ["椒麻", "鱼", "四季豆"], [
     ing("白鱼柳", 180, "g", "Woolworths"),
-    ing("芦笋或四季豆", 180, "g", "Spudshed"),
+    ing("四季豆", 180, "g", "Spudshed"),
     ing("柠檬或青柠", 0.5, "个", "Spudshed"),
-  ], ["芦笋垫底，鱼柳铺姜丝。", "水开蒸 6-8 分钟。", "藤椒粉、青柠汁和少量酱油调味。"]),
-  recipe("m021", "豆瓣茄子瘦肉末", ["main"], 520, 42, ["豆瓣", "茄子", "肉末"], [
-    ing("鸡肉或火鸡瘦肉末", 160, "g", "Woolworths"),
+  ], ["四季豆垫底，鱼柳铺姜丝。", "水开蒸 6-8 分钟。", "花椒粉、青柠汁和少量酱油调味。"]),
+  recipe("m021", "豆瓣茄子鸡肉末", ["main"], 520, 42, ["豆瓣", "茄子", "肉末"], [
+    ing("鸡肉瘦肉末", 160, "g", "Woolworths"),
     ing("茄子", 1, "根", "Spudshed"),
     ing("小白菜", 0.5, "把", "Spudshed"),
-  ], ["茄子切条垫底，肉末铺薄。", "蒸 10-12 分钟。", "豆瓣少量加蒜醋和蒸菜汤调开。"]),
-  recipe("m022", "酸辣毛豆鸡胸南瓜", ["main"], 510, 46, ["鸡胸", "毛豆", "酸辣"], [
+  ], ["茄子切条垫底，肉末铺薄。", "蒸 10-12 分钟。", "豆瓣酱少量加蒜、醋和蒸菜汤调开。"]),
+  recipe("m022", "酸辣青豆鸡胸南瓜", ["main"], 470, 42, ["鸡胸", "青豆", "酸辣"], [
     ing("鸡胸肉", 150, "g", "Woolworths"),
-    ing("冷冻毛豆", 100, "g", "Woolworths"),
+    ing("冷冻豌豆", 100, "g", "Woolworths"),
     ing("南瓜", 220, "g", "Spudshed"),
-  ], ["南瓜先蒸 8 分钟。", "加入鸡胸和毛豆再蒸 8 分钟。", "醋、辣椒面、蒜末和葱花拌匀。"]),
+  ], ["南瓜先蒸 8 分钟。", "加入鸡胸和豌豆再蒸 8 分钟。", "醋、辣椒面、蒜末和葱花拌匀。"]),
 ];
 
 let state = loadState();
 
 const elements = {
+  appShell: document.querySelector(".app-shell"),
+  appNav: document.querySelector(".app-nav"),
+  todayPanel: document.querySelector("#todayPanel"),
+  todaySummary: document.querySelector("#todaySummary"),
   weekStart: document.querySelector("#weekStart"),
   mainDay: document.querySelector("#mainDay"),
   topUpDay: document.querySelector("#topUpDay"),
-  servingValue: document.querySelector("#servingValue"),
-  servingMinus: document.querySelector("#servingMinus"),
-  servingPlus: document.querySelector("#servingPlus"),
   targetMe: document.querySelector("#targetMe"),
   targetPartner: document.querySelector("#targetPartner"),
-  weeklyNote: document.querySelector("#weeklyNote"),
+  riceEnergy: document.querySelector("#riceEnergy"),
   recipeMetric: document.querySelector("#recipeMetric"),
   customMetric: document.querySelector("#customMetric"),
   calorieMetric: document.querySelector("#calorieMetric"),
@@ -205,12 +207,11 @@ const elements = {
   loadCloud: document.querySelector("#loadCloud"),
   autoSync: document.querySelector("#autoSync"),
   generatePlan: document.querySelector("#generatePlan"),
-  copyPlan: document.querySelector("#copyPlan"),
-  printPlan: document.querySelector("#printPlan"),
   toast: document.querySelector("#toast"),
 };
 
 let autoSyncTimer = null;
+let cloudPullTimer = null;
 let syncMessage = "";
 
 init();
@@ -224,12 +225,13 @@ function ing(name, amount, unit, store, pantry = false) {
 }
 
 function init() {
+  applyIncomingSyncCodeFromUrl();
   populateWeekdaySelect(elements.mainDay, state.mainDay);
   populateWeekdaySelect(elements.topUpDay, state.topUpDay);
   elements.weekStart.value = state.weekStart;
-  elements.targetMe.value = state.targetMe;
-  elements.targetPartner.value = state.targetPartner;
-  elements.weeklyNote.value = state.note;
+  elements.targetMe.value = kcalToKj(state.targetMe);
+  elements.targetPartner.value = kcalToKj(state.targetPartner);
+  elements.riceEnergy.value = state.riceKjPerMainMeal;
 
   elements.weekStart.addEventListener("change", () => {
     state.weekStart = elements.weekStart.value || getMondayIso(new Date());
@@ -243,39 +245,34 @@ function init() {
     state.topUpDay = elements.topUpDay.value;
     saveAndRender();
   });
-  elements.servingMinus.addEventListener("click", () => {
-    state.servings = Math.max(1, state.servings - 1);
+  elements.targetMe.addEventListener("change", () => {
+    state.targetMe = cleanTargetFromKj(elements.targetMe.value, state.targetMe);
     saveAndRender();
   });
-  elements.servingPlus.addEventListener("click", () => {
-    state.servings = Math.min(4, state.servings + 1);
+  elements.targetPartner.addEventListener("change", () => {
+    state.targetPartner = cleanTargetFromKj(elements.targetPartner.value, state.targetPartner);
     saveAndRender();
   });
-  elements.targetMe.addEventListener("input", () => {
-    state.targetMe = cleanTarget(elements.targetMe.value, state.targetMe);
+  elements.riceEnergy.addEventListener("change", () => {
+    state.riceKjPerMainMeal = cleanRiceEnergy(elements.riceEnergy.value, state.riceKjPerMainMeal);
     saveAndRender();
-  });
-  elements.targetPartner.addEventListener("input", () => {
-    state.targetPartner = cleanTarget(elements.targetPartner.value, state.targetPartner);
-    saveAndRender();
-  });
-  elements.weeklyNote.addEventListener("input", () => {
-    state.note = elements.weeklyNote.value;
-    saveState();
-    queueCloudSave();
   });
   elements.recipeSearch.addEventListener("input", () => {
     state.recipeSearch = elements.recipeSearch.value;
     saveAndRender();
   });
+  elements.appNav.querySelectorAll("[data-view]").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.currentView = button.dataset.view;
+      saveAndRender({ skipCloud: true });
+    });
+  });
   elements.generatePlan.addEventListener("click", () => {
-    state.plan = generatePlan({ offset: Date.now() % 997 });
+    state.plan = generateDistinctPlan();
     state.checks = {};
     saveAndRender();
-    showToast("下周计划已重新生成。");
+    showToast("已换一版更不一样的下周计划。");
   });
-  elements.copyPlan.addEventListener("click", copyPlan);
-  elements.printPlan.addEventListener("click", () => window.print());
   elements.recipeForm.addEventListener("submit", addRecipeFromForm);
   elements.copyAiPrompt.addEventListener("click", copyAiPrompt);
   elements.importRecipes.addEventListener("click", importRecipes);
@@ -284,48 +281,69 @@ function init() {
   elements.connectSyncCode.addEventListener("click", connectSyncCode);
   elements.saveCloud.addEventListener("click", () => runCloudAction(elements.saveCloud, () => saveCloudData()));
   elements.loadCloud.addEventListener("click", () => runCloudAction(elements.loadCloud, () => loadCloudData()));
-  elements.autoSync.addEventListener("change", () => {
-    state.sync.auto = elements.autoSync.checked;
-    saveState();
-    renderSyncUi();
-    if (state.sync.auto) queueCloudSave();
-    showToast(state.sync.auto ? "已开启自动同步。" : "已关闭自动同步。");
-  });
+  if (elements.autoSync) {
+    elements.autoSync.addEventListener("change", () => {
+      state.sync.auto = elements.autoSync.checked;
+      saveState();
+      renderSyncUi();
+      if (state.sync.auto) queueCloudSave();
+      showToast(state.sync.auto ? "已开启自动同步。" : "已关闭自动同步。");
+    });
+  }
 
   if (!isPlanValid(state.plan)) {
     state.plan = generatePlan();
     saveState();
   }
   render();
+  startCloudSync();
 }
 
 function loadState() {
   const defaults = {
+    plannerVersion: 2,
     weekStart: getMondayIso(new Date()),
     mainDay: "周日",
     topUpDay: "周三",
     servings: 2,
-    targetMe: 1800,
-    targetPartner: 1500,
+    targetMe: 2250,
+    targetPartner: 1600,
+    riceKjPerMainMeal: 650,
     note: "",
     customRecipes: [],
     plan: null,
+    currentView: "home",
     activeTrip: "main",
     recipeFilter: "all",
     recipeSearch: "",
+    rejectedRecipeIds: [],
     checks: {},
     sync: getDefaultSync(),
   };
 
   try {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
-    return {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    const saved = JSON.parse(raw) || {};
+    const isOldPlanner = Boolean(raw && saved?.plannerVersion !== defaults.plannerVersion);
+    const loaded = {
       ...defaults,
       ...saved,
+      servings: 2,
+      targetMe: migrateTarget(saved?.targetMe, defaults.targetMe, isOldPlanner ? 1800 : null),
+      targetPartner: migrateTarget(saved?.targetPartner, defaults.targetPartner, isOldPlanner ? 1500 : null),
+      riceKjPerMainMeal: cleanRiceEnergy(saved?.riceKjPerMainMeal, defaults.riceKjPerMainMeal),
       checks: saved?.checks || {},
       customRecipes: saved?.customRecipes || [],
+      currentView: ["home", "shopping", "recipes", "settings"].includes(saved?.currentView) ? saved.currentView : defaults.currentView,
+      rejectedRecipeIds: Array.isArray(saved?.rejectedRecipeIds) ? saved.rejectedRecipeIds : [],
       sync: normalizeSync(saved?.sync),
     };
+    if (isOldPlanner) {
+      loaded.plan = null;
+      loaded.checks = {};
+      loaded.plannerVersion = defaults.plannerVersion;
+    }
+    return loaded;
   } catch {
     return defaults;
   }
@@ -342,15 +360,25 @@ function saveAndRender(options = {}) {
 }
 
 function render() {
-  elements.servingValue.textContent = `${state.servings} 人`;
+  if (planHasRejectedRecipe(state.plan)) {
+    state.plan = replaceRejectedRecipesInPlan(state.plan);
+    saveState();
+  }
+  state.servings = 2;
   elements.mainDay.value = state.mainDay;
   elements.topUpDay.value = state.topUpDay;
   elements.weekStart.value = state.weekStart;
-  elements.targetMe.value = state.targetMe;
-  elements.targetPartner.value = state.targetPartner;
+  elements.targetMe.value = kcalToKj(state.targetMe);
+  elements.targetPartner.value = kcalToKj(state.targetPartner);
+  elements.riceEnergy.value = state.riceKjPerMainMeal;
   elements.recipeSearch.value = state.recipeSearch;
+  elements.appShell.dataset.view = state.currentView;
+  elements.appNav.querySelectorAll("[data-view]").forEach((button) => {
+    button.classList.toggle("is-active", button.dataset.view === state.currentView);
+  });
 
   renderSyncUi();
+  renderToday();
   renderMetrics();
   renderPlan();
   renderTripTabs();
@@ -359,34 +387,120 @@ function render() {
   renderRecipeLibrary();
 }
 
-function getRecipes() {
+function getAllRecipes() {
   return [...baseRecipes, ...state.customRecipes];
 }
 
+function getRecipes() {
+  return getAllRecipes().filter((item) => !isRejectedRecipe(item.id));
+}
+
 function getRecipe(id) {
-  return getRecipes().find((item) => item.id === id) || baseRecipes[0];
+  return getAllRecipes().find((item) => item.id === id) || getRecipes()[0] || baseRecipes[0];
 }
 
 function getRecipesByType(type) {
   return getRecipes().filter((item) => item.types.includes(type));
 }
 
+function isRejectedRecipe(id) {
+  return state.rejectedRecipeIds.includes(id);
+}
+
 function generatePlan(options = {}) {
   const breakfasts = getRecipesByType("breakfast");
   const mains = getRecipesByType("main");
   const seed = getWeekNumber(parseIsoDate(state.weekStart)) + (options.offset || 0);
+  const dinners = weekdays.map((_, index) => mains[(seed * 2 + index) % mains.length].id);
 
   return weekdays.map((day, index) => ({
     day,
     breakfast: breakfasts[(seed + index) % breakfasts.length].id,
-    lunch: mains[(seed * 2 + index * 2) % mains.length].id,
-    dinner: mains[(seed * 2 + index * 2 + 1) % mains.length].id,
+    lunch: index === 0 ? mains[(seed * 2 + mains.length - 1) % mains.length].id : dinners[index - 1],
+    dinner: dinners[index],
   }));
+}
+
+function generateDistinctPlan() {
+  const currentPlan = state.plan;
+  let bestPlan = null;
+  let bestScore = Infinity;
+
+  for (let attempt = 0; attempt < 18; attempt += 1) {
+    const candidate = generatePlan({ offset: Math.floor(Math.random() * 10000) + attempt * 31 });
+    const score = scorePlanSimilarity(currentPlan, candidate);
+    if (score < bestScore) {
+      bestPlan = candidate;
+      bestScore = score;
+    }
+    if (score === 0) break;
+  }
+
+  return bestPlan || generatePlan({ offset: Date.now() % 997 });
+}
+
+function scorePlanSimilarity(currentPlan, candidatePlan) {
+  if (!Array.isArray(currentPlan) || !Array.isArray(candidatePlan)) return 0;
+  return candidatePlan.reduce((score, day, index) => {
+    const current = currentPlan[index] || {};
+    const slotScore = ["breakfast", "lunch", "dinner"].reduce((sum, slot) => sum + (current[slot] === day[slot] ? 2 : 0), 0);
+    const repeatedDinner = currentPlan.some((currentDay) => currentDay?.dinner === day.dinner) ? 1 : 0;
+    return score + slotScore + repeatedDinner;
+  }, 0);
 }
 
 function isPlanValid(plan) {
   if (!Array.isArray(plan) || plan.length !== 7) return false;
   return plan.every((day) => day.breakfast && day.lunch && day.dinner);
+}
+
+function renderToday() {
+  const weekStart = parseIsoDate(state.weekStart);
+  const todayIndex = getVisibleTodayIndex(weekStart);
+  const dayPlan = state.plan[todayIndex];
+  const date = addDays(weekStart, todayIndex);
+  const total = getDayTotal(dayPlan);
+  const meals = [
+    ["breakfast", "早餐", getRecipe(dayPlan.breakfast)],
+    ["lunch", todayIndex === 0 ? "午餐 · 周日备餐" : "午餐 · 昨晚带饭", getRecipe(dayPlan.lunch)],
+    ["dinner", "晚餐 · 做 4 份", getRecipe(dayPlan.dinner)],
+  ];
+
+  elements.todaySummary.textContent = `${weekdays[todayIndex]} ${formatDate(date)} · ${formatEnergy(total, { compact: true })}/人 · 晚饭多做明天午餐`;
+  elements.todayPanel.innerHTML = meals.map(([slot, label, recipeItem]) => `
+    <article class="today-meal">
+      <header>
+        <div>
+          <span class="meal-label">${label}</span>
+          <h4>${recipeItem.name}</h4>
+        </div>
+        <span class="daily-kcal">${formatMealEnergy(recipeItem, slot)}</span>
+      </header>
+      <div class="today-meal-body">
+        <div>
+          <strong>食材</strong>
+          <p>${recipeItem.ingredients.map((ingredient) => ingredient.name).slice(0, 6).join("、")}</p>
+        </div>
+        <div>
+          <strong>做法</strong>
+          <ol>${recipeItem.steps.slice(0, 3).map((step) => `<li>${step}</li>`).join("")}</ol>
+        </div>
+      </div>
+      <div class="meal-actions">
+        <button type="button" data-swap-day="${todayIndex}" data-swap-slot="${slot}">换一个</button>
+        <button type="button" data-reject-id="${recipeItem.id}">不想吃</button>
+      </div>
+    </article>
+  `).join("");
+
+  elements.todayPanel.querySelectorAll("[data-swap-day]").forEach((button) => {
+    button.addEventListener("click", () => {
+      swapPlanSlot(Number(button.dataset.swapDay), button.dataset.swapSlot);
+    });
+  });
+  elements.todayPanel.querySelectorAll("[data-reject-id]").forEach((button) => {
+    button.addEventListener("click", () => rejectRecipe(button.dataset.rejectId));
+  });
 }
 
 function renderPlan() {
@@ -397,7 +511,7 @@ function renderPlan() {
     const breakfast = getRecipe(dayPlan.breakfast);
     const lunch = getRecipe(dayPlan.lunch);
     const dinner = getRecipe(dayPlan.dinner);
-    const total = breakfast.calories + lunch.calories + dinner.calories;
+    const total = getDayTotal(dayPlan);
     const card = document.createElement("article");
     card.className = "plan-card";
     card.innerHTML = `
@@ -406,11 +520,11 @@ function renderPlan() {
           <h4>${dayPlan.day}</h4>
           <span class="meal-date">${formatDate(addDays(weekStart, index))}</span>
         </div>
-        <span class="daily-kcal">${total} kcal/人</span>
+        <span class="daily-kcal">${formatEnergy(total, { compact: true })}/人</span>
       </header>
       ${renderPlanSlot(index, "breakfast", "早餐", breakfast)}
-      ${renderPlanSlot(index, "lunch", "午餐", lunch)}
-      ${renderPlanSlot(index, "dinner", "晚餐", dinner)}
+      ${renderPlanSlot(index, "lunch", index === 0 ? "午餐 · 周日备餐" : "午餐 · 昨晚带饭", lunch)}
+      ${renderPlanSlot(index, "dinner", "晚餐 · 做 4 份", dinner)}
       <div class="target-row">
         <span>我剩余 ${formatRemaining(state.targetMe - total)}</span>
         <span>老婆剩余 ${formatRemaining(state.targetPartner - total)}</span>
@@ -423,9 +537,19 @@ function renderPlan() {
     select.addEventListener("change", () => {
       const day = Number(select.dataset.day);
       const slot = select.dataset.slot;
-      state.plan[day][slot] = select.value;
+      setPlanSlot(day, slot, select.value);
       state.checks = {};
       saveAndRender();
+    });
+  });
+  elements.planGrid.querySelectorAll("[data-swap-day]").forEach((button) => {
+    button.addEventListener("click", () => {
+      swapPlanSlot(Number(button.dataset.swapDay), button.dataset.swapSlot);
+    });
+  });
+  elements.planGrid.querySelectorAll("[data-reject-id]").forEach((button) => {
+    button.addEventListener("click", () => {
+      rejectRecipe(button.dataset.rejectId);
     });
   });
 }
@@ -439,12 +563,20 @@ function renderPlanSlot(dayIndex, slot, label, selectedRecipe) {
     <div class="plan-slot">
       <div class="meal-slot-title">
         <strong>${label}</strong>
-        <span class="kcal-chip">${selectedRecipe.calories} kcal</span>
+        <span class="kcal-chip">${formatMealEnergy(selectedRecipe, slot)}</span>
       </div>
       <select data-day="${dayIndex}" data-slot="${slot}" aria-label="${weekdays[dayIndex]}${label}">
         ${options}
       </select>
-      <p>${selectedRecipe.tags.slice(0, 3).join(" / ")} · 蛋白 ${selectedRecipe.protein || 0} g</p>
+      <p>${selectedRecipe.tags.slice(0, 3).join(" / ")} · 蛋白 ${selectedRecipe.protein || 0} g${slot === "breakfast" ? "" : ` · 含米饭 ${state.riceKjPerMainMeal} kJ`}</p>
+      <div class="slot-steps">
+        <strong>简短做法</strong>
+        <span>${selectedRecipe.steps.slice(0, 2).join(" / ")}</span>
+      </div>
+      <div class="meal-actions compact">
+        <button type="button" data-swap-day="${dayIndex}" data-swap-slot="${slot}">换一个</button>
+        <button type="button" data-reject-id="${selectedRecipe.id}">不想吃</button>
+      </div>
     </div>
   `;
 }
@@ -469,7 +601,7 @@ function renderShopping() {
   const grouped = buildShoppingItems(trip.days);
   elements.shoppingLists.innerHTML = "";
 
-  ["Spudshed", "Woolworths"].forEach((store) => {
+  [trip.store].forEach((store) => {
     const items = grouped.filter((item) => item.store === store);
     const article = document.createElement("article");
     article.className = `store-card ${store === "Spudshed" ? "spudshed" : "woolworths"}`;
@@ -547,6 +679,7 @@ function renderFilters() {
     ["breakfast", "早餐"],
     ["main", "中/晚餐"],
     ["custom", "我的菜"],
+    ["rejected", "不想吃"],
   ];
   elements.recipeFilters.innerHTML = "";
   filters.forEach(([value, label]) => {
@@ -564,7 +697,9 @@ function renderFilters() {
 
 function renderRecipeLibrary() {
   const query = state.recipeSearch.trim().toLowerCase();
-  let recipes = getRecipes();
+  let recipes = state.recipeFilter === "rejected"
+    ? getAllRecipes().filter((item) => isRejectedRecipe(item.id))
+    : getRecipes();
   if (state.recipeFilter === "breakfast") recipes = recipes.filter((item) => item.types.includes("breakfast"));
   if (state.recipeFilter === "main") recipes = recipes.filter((item) => item.types.includes("main"));
   if (state.recipeFilter === "custom") recipes = recipes.filter((item) => item.source === "custom");
@@ -589,7 +724,7 @@ function renderRecipeLibrary() {
           <h4>${item.name}</h4>
           <p>${typeLabel(item.types)} · 蛋白 ${item.protein || 0} g</p>
         </div>
-        <span class="daily-kcal">${item.calories} kcal</span>
+        <span class="daily-kcal">${formatEnergy(item.calories, { compact: true })}</span>
       </header>
       <div class="tag-row">${item.tags.map((tag) => `<span class="tag">${tag}</span>`).join("")}</div>
       <div class="recipe-body">
@@ -598,19 +733,35 @@ function renderRecipeLibrary() {
         <strong>做法</strong>
         <ol>${item.steps.slice(0, 3).map((step) => `<li>${step}</li>`).join("")}</ol>
       </div>
-      ${item.source === "custom" ? `<button class="delete-recipe" type="button" data-id="${item.id}">删除</button>` : ""}
+      <div class="recipe-actions">
+        ${isRejectedRecipe(item.id)
+          ? `<button type="button" data-restore-id="${item.id}">恢复</button>`
+          : `<button type="button" data-reject-id="${item.id}">不想吃</button>`}
+        ${item.source === "custom" ? `<button class="delete-recipe" type="button" data-id="${item.id}">删除</button>` : ""}
+      </div>
     `;
     elements.recipeGrid.append(card);
   });
+
+  if (recipes.length === 0) {
+    elements.recipeGrid.innerHTML = `<article class="empty-card">这里还没有菜。</article>`;
+  }
 
   elements.recipeGrid.querySelectorAll(".delete-recipe").forEach((button) => {
     button.addEventListener("click", () => {
       const id = button.dataset.id;
       state.customRecipes = state.customRecipes.filter((item) => item.id !== id);
+      state.rejectedRecipeIds = state.rejectedRecipeIds.filter((item) => item !== id);
       state.plan = replaceDeletedRecipeInPlan(state.plan, id);
       saveAndRender();
       showToast("已删除自定义菜谱。");
     });
+  });
+  elements.recipeGrid.querySelectorAll("[data-reject-id]").forEach((button) => {
+    button.addEventListener("click", () => rejectRecipe(button.dataset.rejectId));
+  });
+  elements.recipeGrid.querySelectorAll("[data-restore-id]").forEach((button) => {
+    button.addEventListener("click", () => restoreRecipe(button.dataset.restoreId));
   });
 }
 
@@ -622,17 +773,25 @@ function renderMetrics() {
   const dailyAverage = Math.round(getDailyTotals().reduce((sum, value) => sum + value, 0) / 7);
 
   elements.recipeMetric.textContent = `${recipes.length} 道`;
-  elements.customMetric.textContent = `内置 ${baseRecipes.length} 道，我的 ${state.customRecipes.length} 道`;
-  elements.calorieMetric.textContent = `${dailyAverage} kcal`;
+  elements.customMetric.textContent = `内置 ${baseRecipes.length} 道，我的 ${state.customRecipes.length} 道，不想吃 ${state.rejectedRecipeIds.length} 道`;
+  elements.calorieMetric.textContent = formatEnergy(dailyAverage, { compact: true });
   elements.calorieSummary.textContent = `目标差额：我 ${formatRemaining(state.targetMe - dailyAverage)}，老婆 ${formatRemaining(state.targetPartner - dailyAverage)}`;
-  elements.tripSummary.textContent = `${state.mainDay}大采购，${state.topUpDay}补货`;
+  elements.tripSummary.textContent = `${state.mainDay} Spudshed，${state.topUpDay} Woolworths`;
   elements.checkedMetric.textContent = `${percent}%`;
   elements.checkedSummary.textContent =
     checkedCount > 0 ? `已勾选 ${checkedCount}/${shoppingItems.length} 件` : "还没有勾选商品";
 }
 
 function getDailyTotals() {
-  return state.plan.map((day) => getRecipe(day.breakfast).calories + getRecipe(day.lunch).calories + getRecipe(day.dinner).calories);
+  return state.plan.map(getDayTotal);
+}
+
+function getDayTotal(day) {
+  return getRecipe(day.breakfast).calories + getRecipe(day.lunch).calories + getRecipe(day.dinner).calories + getRiceKcalPerMainMeal() * 2;
+}
+
+function getRiceKcalPerMainMeal() {
+  return kjToKcal(state.riceKjPerMainMeal || 0);
 }
 
 function addRecipeFromForm(event) {
@@ -648,7 +807,7 @@ function addRecipeFromForm(event) {
   const newRecipe = normalizeRecipe({
     name: elements.recipeName.value,
     types,
-    calories: Number(elements.recipeCalories.value),
+    energyKj: Number(elements.recipeCalories.value),
     protein: Number(elements.recipeProtein.value || 0),
     tags: splitList(elements.recipeTags.value),
     ingredients: parseIngredientLines(elements.recipeIngredients.value),
@@ -665,6 +824,7 @@ function addRecipeFromForm(event) {
 
 function normalizeRecipe(input) {
   const types = normalizeTypes(input.types || input.categories || ["main"]);
+  const calories = normalizeEnergyToKcal(input);
   const ingredients = Array.isArray(input.ingredients)
     ? input.ingredients.map((ingredient) => ing(
         String(ingredient.name || "").trim(),
@@ -678,7 +838,7 @@ function normalizeRecipe(input) {
   const tags = Array.isArray(input.tags) ? input.tags.map(String).filter(Boolean) : splitList(input.tags || "");
 
   if (!String(input.name || "").trim()) throw new Error("菜名不能为空");
-  if (!Number.isFinite(Number(input.calories))) throw new Error("热量必须是数字");
+  if (!Number.isFinite(calories)) throw new Error("热量必须是数字");
   if (ingredients.length === 0) throw new Error("至少需要一个食材");
   if (steps.length === 0) throw new Error("至少需要一个步骤");
 
@@ -686,7 +846,7 @@ function normalizeRecipe(input) {
     id: `custom-${Date.now()}-${Math.random().toString(16).slice(2)}`,
     name: String(input.name).trim(),
     types,
-    calories: Number(input.calories),
+    calories,
     protein: Number(input.protein || 0),
     tags: tags.length ? tags : ["自定义"],
     ingredients,
@@ -711,7 +871,10 @@ function importRecipes() {
 }
 
 function exportCustomRecipes() {
-  const text = JSON.stringify(state.customRecipes.map(({ source, id, ...rest }) => rest), null, 2);
+  const text = JSON.stringify(state.customRecipes.map(({ source, id, calories, ...rest }) => ({
+    ...rest,
+    energyKj: kcalToKj(calories),
+  })), null, 2);
   elements.aiImport.value = text;
   copyText(text, "我的菜谱 JSON 已放到剪贴板，也显示在文本框里。");
 }
@@ -723,13 +886,16 @@ function buildSharePayload() {
     exportedAt: new Date().toISOString(),
     data: {
       weekStart: state.weekStart,
+      plannerVersion: state.plannerVersion,
       mainDay: state.mainDay,
       topUpDay: state.topUpDay,
       servings: state.servings,
       targetMe: state.targetMe,
       targetPartner: state.targetPartner,
+      riceKjPerMainMeal: state.riceKjPerMainMeal,
       note: state.note,
       customRecipes: state.customRecipes.map(({ source, ...recipeData }) => recipeData),
+      rejectedRecipeIds: state.rejectedRecipeIds,
       plan: state.plan,
       checks: state.checks,
     },
@@ -738,27 +904,30 @@ function buildSharePayload() {
 
 function applySharedData(input) {
   const data = input?.data || input || {};
+  const incomingPlannerVersion = Number(data.plannerVersion || 1);
   const customRecipes = Array.isArray(data.customRecipes)
     ? data.customRecipes.map(normalizeSharedRecipe)
     : [];
 
   state = {
     ...state,
+    plannerVersion: 2,
     weekStart: data.weekStart || state.weekStart,
     mainDay: data.mainDay || state.mainDay,
     topUpDay: data.topUpDay || state.topUpDay,
-    servings: Number(data.servings || state.servings),
+    servings: 2,
     targetMe: Number(data.targetMe || state.targetMe),
     targetPartner: Number(data.targetPartner || state.targetPartner),
+    riceKjPerMainMeal: cleanRiceEnergy(data.riceKjPerMainMeal, state.riceKjPerMainMeal),
     note: data.note || "",
     customRecipes,
-    plan: Array.isArray(data.plan) ? data.plan : null,
+    rejectedRecipeIds: Array.isArray(data.rejectedRecipeIds) ? data.rejectedRecipeIds : [],
+    plan: incomingPlannerVersion === 2 && Array.isArray(data.plan) ? data.plan : null,
     checks: data.checks && typeof data.checks === "object" ? data.checks : {},
     sync: normalizeSync(state.sync),
   };
 
   if (!isPlanValid(state.plan)) state.plan = generatePlan();
-  elements.weeklyNote.value = state.note;
 }
 
 function normalizeSharedRecipe(input) {
@@ -773,20 +942,26 @@ function createSyncCode() {
     ...normalizeSync(state.sync),
     syncId: createUuid(),
     syncSecret: createSecret(),
+    auto: true,
     lastSyncedAt: "",
   };
   saveState();
   renderSyncUi();
-  copyText(formatSyncCode(), "同步码已创建并复制。先保存到云端，再发给老婆。");
+  copyText(formatShareLink(), "家庭云端链接已复制，发给老婆打开一次即可。");
+  if (hasSyncConfig()) {
+    runCloudAction(elements.createSyncCode, () => saveCloudData());
+  } else {
+    setSyncStatus("同步码已创建；Supabase 配好并上传后就会自动保存。");
+  }
 }
 
 function connectSyncCode() {
   try {
     const parsed = parseSyncCode(elements.syncCode.value);
-    state.sync = { ...normalizeSync(state.sync), ...parsed };
+    state.sync = { ...normalizeSync(state.sync), ...parsed, auto: true };
     saveState();
     renderSyncUi();
-    showToast(hasSyncConfig() ? "已连接同步码，正在从云端加载。" : "同步码已保存，下一步配置 Supabase。");
+    showToast(hasSyncConfig() ? "已连接家庭云端，正在加载。" : "同步码已保存，下一步配置 Supabase。");
     if (hasSyncConfig()) runCloudAction(elements.connectSyncCode, () => loadCloudData());
   } catch (error) {
     showToast(error.message);
@@ -825,12 +1000,22 @@ async function loadCloudData(options = {}) {
     });
     const row = firstRpcRow(result);
     if (!row?.data) throw new Error("云端还没有数据，先在主设备点保存到云端。");
+    if (options.onlyIfNewer && state.sync.lastSyncedAt && row.updated_at) {
+      const remoteTime = new Date(row.updated_at).getTime();
+      const localTime = new Date(state.sync.lastSyncedAt).getTime();
+      if (Number.isFinite(remoteTime) && Number.isFinite(localTime) && remoteTime <= localTime) {
+        syncMessage = "";
+        renderSyncUi();
+        return false;
+      }
+    }
     applySharedData(row.data);
     state.sync.lastSyncedAt = row.updated_at || new Date().toISOString();
     saveAndRender({ skipCloud: true });
     syncMessage = "";
     renderSyncUi();
     if (!options.silent) showToast("已从云端加载。");
+    return true;
   } catch (error) {
     setSyncStatus(`同步失败：${getCloudErrorMessage(error)}`);
     if (!options.silent) showToast(`同步失败：${getCloudErrorMessage(error)}`);
@@ -839,6 +1024,7 @@ async function loadCloudData(options = {}) {
 }
 
 async function runCloudAction(button, action) {
+  if (!button) return action();
   button.disabled = true;
   try {
     await action();
@@ -847,6 +1033,24 @@ async function runCloudAction(button, action) {
   } finally {
     button.disabled = false;
   }
+}
+
+function startCloudSync() {
+  if (isSyncReady()) {
+    state.sync.auto = true;
+    saveState();
+    loadCloudData({ silent: true, onlyIfNewer: true }).catch(() => {});
+  }
+  window.clearInterval(cloudPullTimer);
+  cloudPullTimer = window.setInterval(() => {
+    if (isSyncReady()) loadCloudData({ silent: true, onlyIfNewer: true }).catch(() => {});
+  }, 30000);
+  window.addEventListener("focus", () => {
+    if (isSyncReady()) loadCloudData({ silent: true, onlyIfNewer: true }).catch(() => {});
+  });
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden && isSyncReady()) loadCloudData({ silent: true, onlyIfNewer: true }).catch(() => {});
+  });
 }
 
 function queueCloudSave() {
@@ -886,16 +1090,21 @@ function requireSyncReady() {
   return sync;
 }
 
+function isSyncReady() {
+  const sync = normalizeSync(state.sync);
+  return Boolean(sync.syncId && sync.syncSecret && hasSyncConfig());
+}
+
 function renderSyncUi() {
   const code = formatSyncCode();
   if (elements.syncCode !== document.activeElement) elements.syncCode.value = code;
-  elements.autoSync.checked = Boolean(state.sync?.auto);
+  if (elements.autoSync) elements.autoSync.checked = Boolean(state.sync?.auto);
   if (syncMessage) {
     elements.syncStatus.textContent = syncMessage;
     return;
   }
   if (!code) {
-    elements.syncStatus.textContent = "未连接：创建同步码后，两台手机/电脑可以共用一份数据。";
+    elements.syncStatus.textContent = "未连接：创建家庭云端链接后，两个人可以共用一份数据。";
     return;
   }
   if (!hasSyncConfig()) {
@@ -903,8 +1112,8 @@ function renderSyncUi() {
     return;
   }
   elements.syncStatus.textContent = state.sync.lastSyncedAt
-    ? `已连接：上次同步 ${formatSyncTime(state.sync.lastSyncedAt)}`
-    : "已连接：还没有保存到云端。";
+    ? `云端已连接：上次同步 ${formatSyncTime(state.sync.lastSyncedAt)}`
+    : "云端已连接：正在准备第一次保存。";
 }
 
 function setSyncStatus(message) {
@@ -917,7 +1126,9 @@ function getDefaultSync() {
 }
 
 function normalizeSync(sync) {
-  return { ...getDefaultSync(), ...(sync || {}) };
+  const normalized = { ...getDefaultSync(), ...(sync || {}) };
+  if (normalized.syncId && normalized.syncSecret) normalized.auto = true;
+  return normalized;
 }
 
 function formatSyncCode() {
@@ -925,8 +1136,44 @@ function formatSyncCode() {
   return sync.syncId && sync.syncSecret ? `${sync.syncId}.${sync.syncSecret}` : "";
 }
 
+function formatShareLink() {
+  const code = formatSyncCode();
+  const base = window.location.href.split("#")[0];
+  return code ? `${base}#sync=${encodeURIComponent(code)}` : base;
+}
+
+function applyIncomingSyncCodeFromUrl() {
+  const urlCode = getSyncCodeFromUrl();
+  if (!urlCode) return;
+  try {
+    const parsed = parseSyncCode(urlCode);
+    state.sync = { ...normalizeSync(state.sync), ...parsed, auto: true };
+    saveState();
+    if (window.history?.replaceState) {
+      window.history.replaceState(null, "", window.location.href.split("#")[0]);
+    }
+    syncMessage = "已通过家庭链接连接云端，正在加载最新数据...";
+  } catch {
+    syncMessage = "家庭云端链接格式不对，请重新复制。";
+  }
+}
+
+function getSyncCodeFromUrl() {
+  const hash = window.location.hash ? window.location.hash.slice(1) : "";
+  if (!hash) return "";
+  const hashParams = new URLSearchParams(hash);
+  const fromParam = hashParams.get("sync");
+  if (fromParam) return fromParam;
+  return hash.includes(".") ? decodeURIComponent(hash) : "";
+}
+
 function parseSyncCode(value) {
-  const parts = String(value || "").trim().split(".");
+  let raw = String(value || "").trim();
+  if (raw.includes("#sync=")) {
+    raw = raw.split("#sync=")[1] || "";
+  }
+  raw = decodeURIComponent(raw);
+  const parts = raw.split(".");
   if (parts.length !== 2 || !isUuid(parts[0]) || !/^[A-Za-z0-9_-]{24,}$/.test(parts[1])) {
     throw new Error("同步码格式不对，请完整复制粘贴。");
   }
@@ -988,7 +1235,7 @@ function copyAiPrompt() {
 {
   "name": "菜名",
   "types": ["breakfast"] 或 ["main"] 或 ["breakfast","main"],
-  "calories": 每人每份估算热量数字,
+  "energyKj": 每人每份估算热量 kJ 数字,
   "protein": 每人蛋白质克数数字,
   "tags": ["麻辣","蒸菜","高蛋白"],
   "ingredients": [
@@ -997,42 +1244,60 @@ function copyAiPrompt() {
   ],
   "steps": ["步骤1","步骤2","步骤3"]
 }
-限制：不要把大米、酱油、醋、盐、胡椒、蒜、姜、葱、辣椒面、花椒、少量油写进采购食材；这些我默认已有。`;
+限制：不要把大米、酱油、醋、盐、胡椒、蒜、姜、葱、辣椒面、花椒、豆瓣酱、少量油写进采购食材；这些我默认已有。不要使用魔芋、火鸡肉末、毛豆、芦笋这类在 Bunbury 不稳定的食材；优先鸡胸、鸡肉末、白鱼、虾、豆腐、鸡蛋、白菜、小白菜、亚洲青菜、四季豆、西兰花、蘑菇、黄瓜、番茄、南瓜。澳洲食品标签优先用 kJ；如果你只知道 kcal，也可以用 calories 字段。`;
   copyText(prompt, "AI 提示词已复制。");
 }
 
-function copyPlan() {
-  const lines = [
-    "Bunbury 健康川菜下周计划",
-    `人数：${state.servings} 人`,
-    `热量目标：我 ${state.targetMe} kcal/天，老婆 ${state.targetPartner} kcal/天`,
-    `购物：${state.mainDay}大采购，${state.topUpDay}补货`,
-    "",
-  ];
+function setPlanSlot(dayIndex, slot, recipeId) {
+  state.plan[dayIndex][slot] = recipeId;
+  if (slot === "dinner" && dayIndex < state.plan.length - 1) {
+    state.plan[dayIndex + 1].lunch = recipeId;
+  }
+}
 
-  state.plan.forEach((day, index) => {
-    const breakfast = getRecipe(day.breakfast);
-    const lunch = getRecipe(day.lunch);
-    const dinner = getRecipe(day.dinner);
-    const total = breakfast.calories + lunch.calories + dinner.calories;
-    lines.push(`${weekdays[index]}：${total} kcal/人`);
-    lines.push(`早餐：${breakfast.name}（${breakfast.calories} kcal）`);
-    lines.push(`午餐：${lunch.name}（${lunch.calories} kcal）`);
-    lines.push(`晚餐：${dinner.name}（${dinner.calories} kcal）`);
-    lines.push("");
-  });
+function swapPlanSlot(dayIndex, slot) {
+  const type = slot === "breakfast" ? "breakfast" : "main";
+  const candidates = getRecipesByType(type);
+  if (candidates.length <= 1) {
+    showToast("可换的菜太少了，先加几道菜再换。");
+    return;
+  }
+  const currentId = state.plan[dayIndex][slot];
+  const currentIndex = Math.max(0, candidates.findIndex((item) => item.id === currentId));
+  const next = candidates[(currentIndex + 1) % candidates.length];
+  setPlanSlot(dayIndex, slot, next.id);
+  state.checks = {};
+  saveAndRender();
+  showToast(`已换成：${next.name}`);
+}
 
-  tripMeta.forEach((trip) => {
-    lines.push(`${state[trip.dayKey]} ${trip.label}清单`);
-    buildShoppingItems(trip.days).forEach((item) => {
-      const mark = state.checks[item.id] ? "[x]" : "[ ]";
-      lines.push(`${mark} ${item.name} ${formatAmount(item.amount, item.unit)} (${item.store})`);
-    });
-    lines.push("");
-  });
+function rejectRecipe(recipeId) {
+  const recipeItem = getRecipe(recipeId);
+  const wouldEmptyType = recipeItem.types.some((type) => getRecipesByType(type).length <= 1);
+  if (wouldEmptyType) {
+    showToast("这个类型只剩一道菜了，先加新菜再放进不想吃。");
+    return;
+  }
+  state.rejectedRecipeIds = [...new Set([...state.rejectedRecipeIds, recipeId])];
+  state.plan = replaceDeletedRecipeInPlan(state.plan, recipeId);
+  state.checks = {};
+  saveAndRender();
+  showToast("已放进不想吃列表。");
+}
 
-  if (state.note.trim()) lines.push(`备注：${state.note.trim()}`);
-  copyText(lines.join("\n"), "计划已复制。");
+function restoreRecipe(recipeId) {
+  state.rejectedRecipeIds = state.rejectedRecipeIds.filter((id) => id !== recipeId);
+  saveAndRender();
+  showToast("已恢复到菜谱库。");
+}
+
+function planHasRejectedRecipe(plan) {
+  if (!Array.isArray(plan)) return false;
+  return plan.some((day) => ["breakfast", "lunch", "dinner"].some((slot) => isRejectedRecipe(day[slot])));
+}
+
+function replaceRejectedRecipesInPlan(plan) {
+  return state.rejectedRecipeIds.reduce((currentPlan, recipeId) => replaceDeletedRecipeInPlan(currentPlan, recipeId), plan);
 }
 
 function replaceDeletedRecipeInPlan(plan, deletedId) {
@@ -1040,9 +1305,9 @@ function replaceDeletedRecipeInPlan(plan, deletedId) {
   const mains = getRecipesByType("main").filter((item) => item.id !== deletedId);
   return plan.map((day, index) => ({
     ...day,
-    breakfast: day.breakfast === deletedId ? breakfasts[index % breakfasts.length].id : day.breakfast,
-    lunch: day.lunch === deletedId ? mains[index % mains.length].id : day.lunch,
-    dinner: day.dinner === deletedId ? mains[(index + 1) % mains.length].id : day.dinner,
+    breakfast: day.breakfast === deletedId && breakfasts.length ? breakfasts[index % breakfasts.length].id : day.breakfast,
+    lunch: day.lunch === deletedId && mains.length ? mains[index % mains.length].id : day.lunch,
+    dinner: day.dinner === deletedId && mains.length ? mains[(index + 1) % mains.length].id : day.dinner,
   }));
 }
 
@@ -1059,6 +1324,18 @@ function splitLines(value) {
 
 function splitList(value) {
   return String(value).split(/[,，、]/).map((item) => item.trim()).filter(Boolean);
+}
+
+function normalizeEnergyToKcal(input) {
+  const kjValue = input.energyKj ?? input.energy_kj ?? input.kilojoules ?? input.kj;
+  const parsedKj = Number(kjValue);
+  if (Number.isFinite(parsedKj) && parsedKj > 0) return kjToKcal(parsedKj);
+
+  const parsedKcal = Number(input.calories ?? input.kcal ?? input.energyKcal ?? input.energy_kcal);
+  if (!Number.isFinite(parsedKcal) || parsedKcal <= 0) return NaN;
+
+  // Backward compatible with old JSON using calories, while forgiving accidental kJ values.
+  return parsedKcal > 1200 ? kjToKcal(parsedKcal) : Math.round(parsedKcal);
 }
 
 function normalizeTypes(types) {
@@ -1088,6 +1365,44 @@ function cleanTarget(value, fallback) {
   return Math.min(4000, Math.max(1000, Math.round(parsed / 50) * 50));
 }
 
+function migrateTarget(value, fallback, oldDefault = null) {
+  if (oldDefault !== null && Number(value) === oldDefault) return fallback;
+  return cleanTarget(value, fallback);
+}
+
+function cleanTargetFromKj(value, fallback) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return fallback;
+  return cleanTarget(kjToKcal(parsed), fallback);
+}
+
+function cleanRiceEnergy(value, fallback) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.min(1800, Math.max(0, Math.round(parsed / 50) * 50));
+}
+
+function kcalToKj(value) {
+  return Math.round(Number(value || 0) * KJ_PER_KCAL);
+}
+
+function kjToKcal(value) {
+  return Math.round(Number(value || 0) / KJ_PER_KCAL);
+}
+
+function formatEnergy(kcal, options = {}) {
+  const parsed = Number(kcal || 0);
+  const kj = kcalToKj(parsed);
+  const roundedKcal = Math.round(parsed);
+  return options.compact ? `${kj} kJ` : `${kj} kJ (${roundedKcal} kcal)`;
+}
+
+function formatMealEnergy(recipeItem, slot) {
+  const mealKcal = Number(recipeItem.calories || 0) + (slot === "breakfast" ? 0 : getRiceKcalPerMainMeal());
+  const suffix = slot === "breakfast" ? "" : " 含饭";
+  return `${formatEnergy(mealKcal, { compact: true })}${suffix}`;
+}
+
 function formatAmount(amount, unit) {
   if (unit === "g") {
     const rounded = Math.ceil(amount / 10) * 10;
@@ -1108,8 +1423,8 @@ function trimNumber(value) {
 }
 
 function formatRemaining(value) {
-  if (value >= 0) return `${value} kcal`;
-  return `超 ${Math.abs(value)} kcal`;
+  if (value >= 0) return formatEnergy(value);
+  return `超 ${formatEnergy(Math.abs(value))}`;
 }
 
 function populateWeekdaySelect(select, selected) {
@@ -1173,6 +1488,15 @@ function addDays(date, days) {
 
 function formatDate(date) {
   return `${date.getMonth() + 1}月${date.getDate()}日`;
+}
+
+function getVisibleTodayIndex(weekStart) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const start = new Date(weekStart);
+  start.setHours(0, 0, 0, 0);
+  const diff = Math.floor((today - start) / 86400000);
+  return Math.min(6, Math.max(0, diff));
 }
 
 function getWeekNumber(date) {

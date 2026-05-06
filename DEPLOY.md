@@ -34,15 +34,7 @@
 
 把 GitHub Pages 网址发给她。她打开后会看到同一个 App。
 
-如果没有配置云同步，数据仍然保存在各自浏览器里。你要让她拥有你的菜谱和计划：
-
-1. 你在 App 里点“导出全部数据”。
-2. 把 JSON 发给她。
-3. 她在 App 里粘贴到“导入共享包”。
-
-## 推荐的同步方式
-
-如果你不想让她碰 JSON，就用 Supabase：
+如果没有配置云同步，数据会保存在各自浏览器里。推荐直接用 Supabase，同步码会比 JSON 适合两个人长期用：
 
 1. 按 `SUPABASE_SETUP.md` 创建 Supabase 项目并运行 SQL。
 2. 把 Project URL 和 anon public key 填进 `sync-config.js`。

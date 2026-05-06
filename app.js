@@ -197,9 +197,6 @@ const elements = {
   importRecipes: document.querySelector("#importRecipes"),
   exportRecipes: document.querySelector("#exportRecipes"),
   copyAiPrompt: document.querySelector("#copyAiPrompt"),
-  shareImport: document.querySelector("#shareImport"),
-  exportAllData: document.querySelector("#exportAllData"),
-  importAllData: document.querySelector("#importAllData"),
   syncStatus: document.querySelector("#syncStatus"),
   syncCode: document.querySelector("#syncCode"),
   createSyncCode: document.querySelector("#createSyncCode"),
@@ -283,8 +280,6 @@ function init() {
   elements.copyAiPrompt.addEventListener("click", copyAiPrompt);
   elements.importRecipes.addEventListener("click", importRecipes);
   elements.exportRecipes.addEventListener("click", exportCustomRecipes);
-  elements.exportAllData.addEventListener("click", exportAllData);
-  elements.importAllData.addEventListener("click", importAllData);
   elements.createSyncCode.addEventListener("click", createSyncCode);
   elements.connectSyncCode.addEventListener("click", connectSyncCode);
   elements.saveCloud.addEventListener("click", () => runCloudAction(elements.saveCloud, () => saveCloudData()));
@@ -719,26 +714,6 @@ function exportCustomRecipes() {
   const text = JSON.stringify(state.customRecipes.map(({ source, id, ...rest }) => rest), null, 2);
   elements.aiImport.value = text;
   copyText(text, "我的菜谱 JSON 已放到剪贴板，也显示在文本框里。");
-}
-
-function exportAllData() {
-  const payload = buildSharePayload();
-  const text = JSON.stringify(payload, null, 2);
-  elements.shareImport.value = text;
-  copyText(text, "共享包已复制，也显示在导入框里。");
-}
-
-function importAllData() {
-  try {
-    const parsed = JSON.parse(elements.shareImport.value);
-    applySharedData(parsed);
-    elements.weeklyNote.value = state.note;
-    elements.shareImport.value = "";
-    saveAndRender();
-    showToast("共享数据已导入。");
-  } catch (error) {
-    showToast(`导入失败：${error.message}`);
-  }
 }
 
 function buildSharePayload() {

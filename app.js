@@ -200,11 +200,21 @@ const elements = {
   shareImport: document.querySelector("#shareImport"),
   exportAllData: document.querySelector("#exportAllData"),
   importAllData: document.querySelector("#importAllData"),
+  syncStatus: document.querySelector("#syncStatus"),
+  syncCode: document.querySelector("#syncCode"),
+  createSyncCode: document.querySelector("#createSyncCode"),
+  connectSyncCode: document.querySelector("#connectSyncCode"),
+  saveCloud: document.querySelector("#saveCloud"),
+  loadCloud: document.querySelector("#loadCloud"),
+  autoSync: document.querySelector("#autoSync"),
   generatePlan: document.querySelector("#generatePlan"),
   copyPlan: document.querySelector("#copyPlan"),
   printPlan: document.querySelector("#printPlan"),
   toast: document.querySelector("#toast"),
 };
+
+let autoSyncTimer = null;
+let syncMessage = "";
 
 init();
 
@@ -255,6 +265,7 @@ function init() {
   elements.weeklyNote.addEventListener("input", () => {
     state.note = elements.weeklyNote.value;
     saveState();
+    queueCloudSave();
   });
   elements.recipeSearch.addEventListener("input", () => {
     state.recipeSearch = elements.recipeSearch.value;
@@ -274,6 +285,17 @@ function init() {
   elements.exportRecipes.addEventListener("click", exportCustomRecipes);
   elements.exportAllData.addEventListener("click", exportAllData);
   elements.importAllData.addEventListener("click", importAllData);
+  elements.createSyncCode.addEventListener("click", createSyncCode);
+  elements.connectSyncCode.addEventListener("click", connectSyncCode);
+  elements.saveCloud.addEventListener("click", () => runCloudAction(elements.saveCloud, () => saveCloudData()));
+  elements.loadCloud.addEventListener("click", () => runCloudAction(elements.loadCloud, () => loadCloudData()));
+  elements.autoSync.addEventListener("change", () => {
+    state.sync.auto = elements.autoSync.checked;
+    saveState();
+    renderSyncUi();
+    if (state.sync.auto) queueCloudSave();
+    showToast(state.sync.auto ? "已开启自动同步。" : "已关闭自动同步。");
+  });
 
   if (!isPlanValid(state.plan)) {
     state.plan = generatePlan();
@@ -297,11 +319,18 @@ function loadState() {
     recipeFilter: "all",
     recipeSearch: "",
     checks: {},
+    sync: getDefaultSync(),
   };
 
   try {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    return { ...defaults, ...saved, checks: saved?.checks || {}, customRecipes: saved?.customRecipes || [] };
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+    return {
+      ...defaults,
+      ...saved,
+      checks: saved?.checks || {},
+      customRecipes: saved?.customRecipes || [],
+      sync: normalizeSync(saved?.sync),
+    };
   } catch {
     return defaults;
   }
@@ -311,9 +340,10 @@ function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
 
-function saveAndRender() {
+function saveAndRender(options = {}) {
   saveState();
   render();
+  if (!options.skipCloud) queueCloudSave();
 }
 
 function render() {
@@ -325,6 +355,7 @@ function render() {
   elements.targetPartner.value = state.targetPartner;
   elements.recipeSearch.value = state.recipeSearch;
 
+  renderSyncUi();
   renderMetrics();
   renderPlan();
   renderTripTabs();
@@ -691,9 +722,29 @@ function exportCustomRecipes() {
 }
 
 function exportAllData() {
-  const payload = {
+  const payload = buildSharePayload();
+  const text = JSON.stringify(payload, null, 2);
+  elements.shareImport.value = text;
+  copyText(text, "共享包已复制，也显示在导入框里。");
+}
+
+function importAllData() {
+  try {
+    const parsed = JSON.parse(elements.shareImport.value);
+    applySharedData(parsed);
+    elements.weeklyNote.value = state.note;
+    elements.shareImport.value = "";
+    saveAndRender();
+    showToast("共享数据已导入。");
+  } catch (error) {
+    showToast(`导入失败：${error.message}`);
+  }
+}
+
+function buildSharePayload() {
+  return {
     app: "bunbury-sichuan-recipe-db",
-    version: 1,
+    version: 2,
     exportedAt: new Date().toISOString(),
     data: {
       weekStart: state.weekStart,
@@ -703,45 +754,258 @@ function exportAllData() {
       targetMe: state.targetMe,
       targetPartner: state.targetPartner,
       note: state.note,
-      customRecipes: state.customRecipes.map(({ source, id, ...rest }) => rest),
+      customRecipes: state.customRecipes.map(({ source, ...recipeData }) => recipeData),
       plan: state.plan,
+      checks: state.checks,
     },
   };
-  const text = JSON.stringify(payload, null, 2);
-  elements.shareImport.value = text;
-  copyText(text, "共享包已复制，也显示在导入框里。");
 }
 
-function importAllData() {
+function applySharedData(input) {
+  const data = input?.data || input || {};
+  const customRecipes = Array.isArray(data.customRecipes)
+    ? data.customRecipes.map(normalizeSharedRecipe)
+    : [];
+
+  state = {
+    ...state,
+    weekStart: data.weekStart || state.weekStart,
+    mainDay: data.mainDay || state.mainDay,
+    topUpDay: data.topUpDay || state.topUpDay,
+    servings: Number(data.servings || state.servings),
+    targetMe: Number(data.targetMe || state.targetMe),
+    targetPartner: Number(data.targetPartner || state.targetPartner),
+    note: data.note || "",
+    customRecipes,
+    plan: Array.isArray(data.plan) ? data.plan : null,
+    checks: data.checks && typeof data.checks === "object" ? data.checks : {},
+    sync: normalizeSync(state.sync),
+  };
+
+  if (!isPlanValid(state.plan)) state.plan = generatePlan();
+  elements.weeklyNote.value = state.note;
+}
+
+function normalizeSharedRecipe(input) {
+  const normalized = normalizeRecipe(input);
+  if (String(input?.id || "").startsWith("custom-")) normalized.id = String(input.id);
+  normalized.source = "custom";
+  return normalized;
+}
+
+function createSyncCode() {
+  state.sync = {
+    ...normalizeSync(state.sync),
+    syncId: createUuid(),
+    syncSecret: createSecret(),
+    lastSyncedAt: "",
+  };
+  saveState();
+  renderSyncUi();
+  copyText(formatSyncCode(), "同步码已创建并复制。先保存到云端，再发给老婆。");
+}
+
+function connectSyncCode() {
   try {
-    const parsed = JSON.parse(elements.shareImport.value);
-    const data = parsed.data || parsed;
-    const customRecipes = Array.isArray(data.customRecipes)
-      ? data.customRecipes.map(normalizeRecipe)
-      : [];
-
-    state = {
-      ...state,
-      weekStart: data.weekStart || state.weekStart,
-      mainDay: data.mainDay || state.mainDay,
-      topUpDay: data.topUpDay || state.topUpDay,
-      servings: Number(data.servings || state.servings),
-      targetMe: Number(data.targetMe || state.targetMe),
-      targetPartner: Number(data.targetPartner || state.targetPartner),
-      note: data.note || "",
-      customRecipes,
-      plan: Array.isArray(data.plan) ? data.plan : null,
-      checks: {},
-    };
-
-    if (!isPlanValid(state.plan)) state.plan = generatePlan();
-    elements.weeklyNote.value = state.note;
-    elements.shareImport.value = "";
-    saveAndRender();
-    showToast("共享数据已导入。");
+    const parsed = parseSyncCode(elements.syncCode.value);
+    state.sync = { ...normalizeSync(state.sync), ...parsed };
+    saveState();
+    renderSyncUi();
+    showToast(hasSyncConfig() ? "已连接同步码，正在从云端加载。" : "同步码已保存，下一步配置 Supabase。");
+    if (hasSyncConfig()) runCloudAction(elements.connectSyncCode, () => loadCloudData());
   } catch (error) {
-    showToast(`导入失败：${error.message}`);
+    showToast(error.message);
   }
+}
+
+async function saveCloudData(options = {}) {
+  try {
+    const sync = requireSyncReady();
+    setSyncStatus("正在保存到云端...");
+    const result = await callSupabaseRpc("save_shared_plan", {
+      p_sync_id: sync.syncId,
+      p_sync_secret: sync.syncSecret,
+      p_data: buildSharePayload(),
+    });
+    const row = firstRpcRow(result);
+    state.sync.lastSyncedAt = row?.updated_at || new Date().toISOString();
+    saveState();
+    syncMessage = "";
+    renderSyncUi();
+    if (!options.silent) showToast("已保存到云端。");
+  } catch (error) {
+    setSyncStatus(`同步失败：${getCloudErrorMessage(error)}`);
+    if (!options.silent) showToast(`同步失败：${getCloudErrorMessage(error)}`);
+    throw error;
+  }
+}
+
+async function loadCloudData(options = {}) {
+  try {
+    const sync = requireSyncReady();
+    setSyncStatus("正在从云端加载...");
+    const result = await callSupabaseRpc("load_shared_plan", {
+      p_sync_id: sync.syncId,
+      p_sync_secret: sync.syncSecret,
+    });
+    const row = firstRpcRow(result);
+    if (!row?.data) throw new Error("云端还没有数据，先在主设备点保存到云端。");
+    applySharedData(row.data);
+    state.sync.lastSyncedAt = row.updated_at || new Date().toISOString();
+    saveAndRender({ skipCloud: true });
+    syncMessage = "";
+    renderSyncUi();
+    if (!options.silent) showToast("已从云端加载。");
+  } catch (error) {
+    setSyncStatus(`同步失败：${getCloudErrorMessage(error)}`);
+    if (!options.silent) showToast(`同步失败：${getCloudErrorMessage(error)}`);
+    throw error;
+  }
+}
+
+async function runCloudAction(button, action) {
+  button.disabled = true;
+  try {
+    await action();
+  } catch {
+    // Individual cloud actions already surface the error in the sync panel and toast.
+  } finally {
+    button.disabled = false;
+  }
+}
+
+function queueCloudSave() {
+  window.clearTimeout(autoSyncTimer);
+  if (!state.sync?.auto || !state.sync.syncId || !state.sync.syncSecret || !hasSyncConfig()) return;
+  autoSyncTimer = window.setTimeout(() => {
+    saveCloudData({ silent: true }).catch(() => {});
+  }, 1200);
+}
+
+async function callSupabaseRpc(functionName, body) {
+  const config = getSyncConfig();
+  const response = await fetch(`${config.supabaseUrl}/rest/v1/rpc/${functionName}`, {
+    method: "POST",
+    headers: {
+      apikey: config.supabaseAnonKey,
+      authorization: `Bearer ${config.supabaseAnonKey}`,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+  const text = await response.text();
+  let data = null;
+  try {
+    data = text ? JSON.parse(text) : null;
+  } catch {
+    data = null;
+  }
+  if (!response.ok) throw new Error(data?.message || data?.hint || text || response.statusText);
+  return data;
+}
+
+function requireSyncReady() {
+  const sync = normalizeSync(state.sync);
+  if (!sync.syncId || !sync.syncSecret) throw new Error("先创建或粘贴同步码。");
+  if (!hasSyncConfig()) throw new Error("Supabase 还没配置，请先填 sync-config.js。");
+  return sync;
+}
+
+function renderSyncUi() {
+  const code = formatSyncCode();
+  if (elements.syncCode !== document.activeElement) elements.syncCode.value = code;
+  elements.autoSync.checked = Boolean(state.sync?.auto);
+  if (syncMessage) {
+    elements.syncStatus.textContent = syncMessage;
+    return;
+  }
+  if (!code) {
+    elements.syncStatus.textContent = "未连接：创建同步码后，两台手机/电脑可以共用一份数据。";
+    return;
+  }
+  if (!hasSyncConfig()) {
+    elements.syncStatus.textContent = "已保存同步码，等待配置 Supabase。";
+    return;
+  }
+  elements.syncStatus.textContent = state.sync.lastSyncedAt
+    ? `已连接：上次同步 ${formatSyncTime(state.sync.lastSyncedAt)}`
+    : "已连接：还没有保存到云端。";
+}
+
+function setSyncStatus(message) {
+  syncMessage = message;
+  elements.syncStatus.textContent = message;
+}
+
+function getDefaultSync() {
+  return { syncId: "", syncSecret: "", auto: false, lastSyncedAt: "" };
+}
+
+function normalizeSync(sync) {
+  return { ...getDefaultSync(), ...(sync || {}) };
+}
+
+function formatSyncCode() {
+  const sync = normalizeSync(state.sync);
+  return sync.syncId && sync.syncSecret ? `${sync.syncId}.${sync.syncSecret}` : "";
+}
+
+function parseSyncCode(value) {
+  const parts = String(value || "").trim().split(".");
+  if (parts.length !== 2 || !isUuid(parts[0]) || !/^[A-Za-z0-9_-]{24,}$/.test(parts[1])) {
+    throw new Error("同步码格式不对，请完整复制粘贴。");
+  }
+  return { syncId: parts[0], syncSecret: parts[1] };
+}
+
+function isUuid(value) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value));
+}
+
+function createUuid() {
+  if (window.crypto?.randomUUID) return window.crypto.randomUUID();
+  const randomPart = () => Math.floor((1 + Math.random()) * 0x10000).toString(16).slice(1);
+  return `${randomPart()}${randomPart()}-${randomPart()}-4${randomPart().slice(1)}-a${randomPart().slice(1)}-${randomPart()}${randomPart()}${randomPart()}`;
+}
+
+function createSecret() {
+  if (window.crypto?.getRandomValues) {
+    const bytes = window.crypto.getRandomValues(new Uint8Array(24));
+    return btoa(String.fromCharCode(...bytes)).replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
+  }
+  return `${Date.now().toString(36)}${Math.random().toString(36).slice(2)}${Math.random().toString(36).slice(2)}`;
+}
+
+function hasSyncConfig() {
+  const config = window.APP_SYNC_CONFIG || {};
+  return Boolean(String(config.supabaseUrl || "").trim() && String(config.supabaseAnonKey || "").trim());
+}
+
+function getSyncConfig() {
+  const config = window.APP_SYNC_CONFIG || {};
+  return {
+    supabaseUrl: String(config.supabaseUrl || "").trim().replace(/\/$/, ""),
+    supabaseAnonKey: String(config.supabaseAnonKey || "").trim(),
+  };
+}
+
+function firstRpcRow(result) {
+  return Array.isArray(result) ? result[0] : result;
+}
+
+function formatSyncTime(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "刚刚";
+  return date.toLocaleString("zh-CN", {
+    month: "numeric",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function getCloudErrorMessage(error) {
+  return error?.message || "请检查网络和同步码";
 }
 
 function copyAiPrompt() {

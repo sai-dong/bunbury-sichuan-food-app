@@ -77,6 +77,28 @@
           <label class="field-label" for="weeklyNote">本周备注</label>
           <textarea id="weeklyNote" rows="5" placeholder="例如：小米称建议我 1850 kcal；老婆 1500 kcal；周三鱼类买特价。"></textarea>
         </section>
+
+        <section class="panel sync-panel">
+          <p class="panel-kicker">云同步</p>
+          <p id="syncStatus" class="sync-status">未连接</p>
+          <label>
+            <span class="field-label">同步码</span>
+            <input id="syncCode" placeholder="创建后发给老婆，她粘贴一次即可" />
+          </label>
+          <div class="sync-actions">
+            <button id="createSyncCode" type="button">创建同步码</button>
+            <button id="connectSyncCode" type="button">连接</button>
+          </div>
+          <div class="sync-actions">
+            <button id="saveCloud" class="primary-action" type="button">保存到云端</button>
+            <button id="loadCloud" type="button">从云端加载</button>
+          </div>
+          <label class="sync-toggle">
+            <input id="autoSync" type="checkbox" />
+            <span>自动同步</span>
+          </label>
+          <p class="micro-note">需要先按 SUPABASE_SETUP.md 配好数据库；同步码不要公开发。</p>
+        </section>
       </aside>
 
       <section class="workspace">
@@ -242,6 +264,7 @@
     </main>
 
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script src="./sync-config.js"></script>
     <script src="./app.js"></script>
   </body>
 </html>
